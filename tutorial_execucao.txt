@@ -1,0 +1,7 @@
+Tutorial de execução
+
+load_files('C:/Users/cafer/Desenvolvimento/IA/Prolog/Prolog-Graphplan/graphplan').
+load_files('C:/Users/cafer/Desenvolvimento/IA/Prolog/planning').
+
+Execução do Plan
+plan([],[aula_preparada(s1, p1)], preparar, P).
