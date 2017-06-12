@@ -1,3 +1,8 @@
+:- discontiguous can/3.
+:- discontiguous adds/4.
+:- discontiguous deletes/3.
+
+
 %cria predicado
 hora(h1).
 hora(h2).
@@ -46,7 +51,6 @@ desligado(a3).
 desligado(l1).
 desligado(l2).
 desligado(l3).
-
 %salas init
 fechada(s1).
 fechada(s2).
@@ -121,14 +125,14 @@ ar_condicionado(ArCondicionado), temperatura(Temperatura).
  
  
 %Abrir
-can(abrir(Sala, Professor, Hora), [fechada(Sala), reserva(Sala, Professor, Hora)], preparar) :-
-sala(Sala), professor(Professor), hora(Hora).
+can(abrir(Sala, Professor), [fechada(Sala)], preparar) :-
+sala(Sala), professor(Professor), hora(Hora), reserva(Sala, Professor, Hora).
  
 adds(abrir(Sala, Professor, Hora), [aberta(Sala), aberta(Sala)], _, preparar) :- 
- sala(Sala).
+ sala(Sala), professor(Professor), hora(Hora).
  
 deletes(abrir(Sala, Professor, Hora),[fechado(Sala)], preparar) :-  
-sala(Sala).
+sala(Sala), professor(Professor), hora(Hora).
  
 %Fechar
 can(fechar(Sala, Professor), [aberta(Sala), reserva(Sala, Professor)], preparar) :-
@@ -154,8 +158,8 @@ lampada(Z),
 ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-	ligado(W),
-	pertence(Sala, W),
+ligado(W),
+pertence(Sala, W),
 hora(H),
 reserva(Sala, Professor, H).
  
@@ -171,13 +175,14 @@ lampada(Z),
 ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-	ligado(W),
-	pertence(Sala, W),
+ligado(W),
+pertence(Sala, W),
+hora(H),
 reserva(Sala, Professor, H).
 	
 deletes(preparar_aula_com_equipamento(Sala, Professor), [], preparar):-
 professor(Professor),
-	sala(Sala),
+sala(Sala),
 data_show(X),
 ligado(X),
 pertence(Sala, X),
@@ -188,8 +193,9 @@ lampada(Z),
 ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-	ligado(W),
+ligado(W),
 pertence(Sala, W),
+hora(H),
 reserva(Sala, Professor, H).
  
 can(preparar_aula_sem_equipamento(Sala, Professor), [aberta(Sala), not(usa_equipamneto(Professor))],preparar) :-
@@ -199,8 +205,8 @@ lampada(Z),
 ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-	ligado(W),
-	pertence(Sala, W),
+ligado(W),
+pertence(Sala, W),
 hora(H),
 reserva(Sala, Professor, H).
  
@@ -210,17 +216,19 @@ lampada(Z),
 ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-	ligado(W),
-	pertence(Sala, W),
+ligado(W),
+pertence(Sala, W),
+hora(H),
 reserva(Sala, Professor, H).
 
 deletes(preparar_aula_sem_equipamento(Sala, Professor), [], preparar):-
 professor(Professor),
-	sala(Sala),
+sala(Sala),
 lampada(Z),
 ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-	ligado(W),
+ligado(W),
 pertence(Sala, W),
+hora(H),
 reserva(Sala, Professor, H).
