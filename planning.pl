@@ -39,22 +39,22 @@ temperatura(t3).
 
 %init dos sujeitos
 %equipamento init
-desligado(c1).
-desligado(c2).
-desligado(c3).
-desligado(d1).
-desligado(d2).
-desligado(d3).
-desligado(a1).
-desligado(a2).
-desligado(a3).
-desligado(l1).
-desligado(l2).
-desligado(l3).
+%desligado(c1).
+%desligado(c2).
+%desligado(c3).
+%desligado(d1).
+%desligado(d2).
+%desligado(d3).
+%desligado(a1).
+%desligado(a2).
+%desligado(a3).
+%desligado(l1).
+%desligado(l2).
+%desligado(l3).
 %salas init
-fechada(s1).
-fechada(s2).
-fechada(s3).
+%fechada(s1).
+%fechada(s2).
+%fechada(s3).
 %Fim init
 
 %Relacao sujeito e predicado
@@ -82,6 +82,7 @@ reserva(s2, p3, h1).
 
 usa_equipamento(p1).
 usa_equipamento(p3).
+nao_usa_equipamento(p2).
 
 %Fim relacao
 
@@ -92,24 +93,24 @@ ligavel(X) :- data_show(X); computador(X); ar_condicionado(X); lampada(X).
 %aberta(X) :- not(fechada(X)).
 
 %Ligar
-can(ligar(Sala,Item), [desligado(Item), aberta(Sala), pertence(Sala, Item)], preparar) :- 
-sala(Sala), ligavel(Item).
+can(ligar(Item, Sala), [desligado(Item), aberta(Sala)], preparar) :- 
+ligavel(Item), sala(Sala), pertence(Sala, Item) .
  
-adds(ligar(Sala,Item), [ligado(Item)], _, preparar) :- 
-sala(Sala), ligavel(Item).
+adds(ligar(Item, Sala), [ligado(Item)], _, preparar) :- 
+ligavel(Item), sala(Sala).
  
-deletes(ligar(Sala,Item), [desligado(Item)], preparar) :- 
-sala(Sala), ligavel(Item).
+deletes(ligar(Item, Sala), [desligado(Item)], preparar) :- 
+ligavel(Item), sala(Sala).
  
 %Desligar
-can(desligar(Sala,Item), [ligado(Item), aberta(Sala), pertence(Sala, Item)], preparar) :- 
-sala(Sala), ligavel(Item).
+can(desligar(Item, Sala), [ligado(Item), aberta(Sala)], preparar) :- 
+ligavel(Item), sala(Sala), pertence(Sala, Item).
  
-adds(desligar(Sala,Item), [desligado(Item)], _, preparar):- 
-sala(Sala), ligavel(Item).
+adds(desligar(Item, Sala), [desligado(Item)], _, preparar):- 
+ligavel(Item), sala(Sala).
  
-deletes(desligar(Sala,Item), [ligado(Item)],preparar) :- 
-sala(Sala), ligavel(Item).
+deletes(desligar(Item, Sala), [ligado(Item)],preparar) :- 
+ligavel(Item), sala(Sala).
  
 %AjustarArCondicionado
 can(ajustar(ArCondicionado, Temperatura), [not(potencia(ArCondicionado, Temperatura))], preparar) :- 
@@ -125,110 +126,106 @@ ar_condicionado(ArCondicionado), temperatura(Temperatura).
  
  
 %Abrir
-can(abrir(Sala, Professor), [fechada(Sala)], preparar) :-
-sala(Sala), professor(Professor), hora(Hora), reserva(Sala, Professor, Hora).
+can(abrir(Sala, Professor, Hora), [fechada(Sala), reserva(Sala, Professor, Hora)], preparar) :-
+sala(Sala), professor(Professor), hora(Hora).
  
-adds(abrir(Sala, Professor, Hora), [aberta(Sala), aberta(Sala)], _, preparar) :- 
+adds(abrir(Sala, Professor, Hora), [aberta(Sala)], _, preparar) :- 
  sala(Sala), professor(Professor), hora(Hora).
  
-deletes(abrir(Sala, Professor, Hora),[fechado(Sala)], preparar) :-  
+deletes(abrir(Sala, Professor, Hora),[fechada(Sala)], preparar) :-  
 sala(Sala), professor(Professor), hora(Hora).
  
 %Fechar
-can(fechar(Sala, Professor), [aberta(Sala), reserva(Sala, Professor)], preparar) :-
-sala(Sala), professor(Professor).
+can(fechar(Sala, Professor, Hora), [aberta(Sala), reserva(Sala,Professor,Hora)], preparar) :-
+sala(Sala), professor(Professor), hora(Hora).
  
-adds(fechar(Sala, Professor), [ fechado(Sala)], _, preparar) :- 
- sala(Sala), professor(Professor).
+adds(fechar(Sala, Professor, Hora), [ fechada(Sala)], _, preparar) :- 
+ sala(Sala), professor(Professor), hora(Hora).
  
-deletes(fechar(Sala, Professor),[aberta(Sala)], preparar) :-  
-sala(Sala), professor(Professor).
+deletes(fechar(Sala, Professor, Hora),[aberta(Sala)], preparar) :-  
+sala(Sala), professor(Professor), hora(Hora).
  
 %Iniciar aula
-can(preparar_aula_com_equipamento(Sala, Professor), [aberta(Sala), usa_equipamneto(Professor)],preparar) :-
+can(preparar_aula_com_equipamento(Sala, Professor), [aberta(Sala), ligado(X), ligado(Y), ligado(Z), ligado(W), usa_equipamento(Professor)],preparar) :-
 professor(Professor),
 sala(Sala),
 data_show(X),
-ligado(X),
 pertence(Sala, X),
 computador(Y),
-ligado(Y),
 pertence(Sala, Y),
 lampada(Z),
-ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-ligado(W),
 pertence(Sala, W),
 hora(H),
 reserva(Sala, Professor, H).
  
 adds(preparar_aula_com_equipamento(Sala, Professor), [aula_preparada(Sala,Professor)], _, preparar):-
 professor(Professor),
-data_show(X),
-ligado(X),
-pertence(Sala, X),
-computador(Y),
-ligado(Y),
-pertence(Sala, Y),
-lampada(Z),
-ligado(Z),
-pertence(Sala,Z),
-ar_condicionado(W),
-ligado(W),
-pertence(Sala, W),
-hora(H),
-reserva(Sala, Professor, H).
+sala(Sala).
+%data_show(X),
+%ligado(X),
+%pertence(Sala, X),
+%computador(Y),
+%ligado(Y),
+%pertence(Sala, Y),
+%lampada(Z),
+%ligado(Z),
+%pertence(Sala,Z),
+%ar_condicionado(W),
+%ligado(W),
+%pertence(Sala, W),
+%hora(H),
+%reserva(Sala, Professor, H).
 	
 deletes(preparar_aula_com_equipamento(Sala, Professor), [], preparar):-
 professor(Professor),
-sala(Sala),
-data_show(X),
-ligado(X),
-pertence(Sala, X),
-computador(Y),
-ligado(Y),
-pertence(Sala, Y),
-lampada(Z),
-ligado(Z),
-pertence(Sala,Z),
-ar_condicionado(W),
-ligado(W),
-pertence(Sala, W),
-hora(H),
-reserva(Sala, Professor, H).
+sala(Sala).
+%data_show(X),
+%ligado(X),
+%pertence(Sala, X),
+%computador(Y),
+%ligado(Y),
+%pertence(Sala, Y),
+%lampada(Z),
+%ligado(Z),
+%pertence(Sala,Z),
+%ar_condicionado(W),
+%ligado(W),
+%pertence(Sala, W),
+%hora(H),
+%reserva(Sala, Professor, H).
  
-can(preparar_aula_sem_equipamento(Sala, Professor), [aberta(Sala), not(usa_equipamneto(Professor))],preparar) :-
+can(preparar_aula_sem_equipamento(Sala, Professor), [aberta(Sala),ligado(Z), ligado(W), nao_usa_equipamento(Professor)],preparar) :-
 professor(Professor),
 sala(Sala),
 lampada(Z),
-ligado(Z),
 pertence(Sala,Z),
 ar_condicionado(W),
-ligado(W),
 pertence(Sala, W),
 hora(H),
 reserva(Sala, Professor, H).
  
 adds(preparar_aula_sem_equipamento(Sala, Professor), [aula_preparada(Sala,Professor)], _, preparar):-
 professor(Professor),
-lampada(Z),
-ligado(Z),
-pertence(Sala,Z),
-ar_condicionado(W),
-ligado(W),
-pertence(Sala, W),
-hora(H),
-reserva(Sala, Professor, H).
+sala(Sala).
+%lampada(Z),
+%ligado(Z),
+%pertence(Sala,Z),
+%ar_condicionado(W),
+%ligado(W),
+%pertence(Sala, W),
+%hora(H),
+%reserva(Sala, Professor, H).
 
 deletes(preparar_aula_sem_equipamento(Sala, Professor), [], preparar):-
 professor(Professor),
-sala(Sala),
-lampada(Z),
-ligado(Z),
-pertence(Sala,Z),
-ar_condicionado(W),
-ligado(W),
-pertence(Sala, W),
-hora(H),
-reserva(Sala, Professor, H).
+sala(Sala).
+%lampada(Z),
+%ligado(Z),
+%pertence(Sala,Z),
+%ar_condicionado(W),
+%ligado(W),
+%pertence(Sala, W),
+%hora(H),
+%reserva(Sala, Professor, H).
