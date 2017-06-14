@@ -32,30 +32,18 @@ professor(p1).
 professor(p2).
 professor(p3).
 
-temperatura(t1).
-temperatura(t2).
-temperatura(t3).
+%clima(quente).
+%clima(frio).
+
+%baixa(potencia).
+%media(potencia).
+%alta(potencia).
+potencia(baixa).
+potencia(media).
+potencia(alta).
 %Fim de predicado
 
-%init dos sujeitos
-%equipamento init
-%desligado(c1).
-%desligado(c2).
-%desligado(c3).
-%desligado(d1).
-%desligado(d2).
-%desligado(d3).
-%desligado(a1).
-%desligado(a2).
-%desligado(a3).
-%desligado(l1).
-%desligado(l2).
-%desligado(l3).
-%salas init
-%fechada(s1).
-%fechada(s2).
-%fechada(s3).
-%Fim init
+
 
 %Relacao sujeito e predicado
 
@@ -80,8 +68,9 @@ reserva(s1, p1, h1).
 reserva(s1, p2, h2).
 reserva(s2, p3, h1).
 
-usa_equipamento(p1).
 usa_equipamento(p3).
+
+nao_usa_equipamento(p1).
 nao_usa_equipamento(p2).
 
 %Fim relacao
@@ -89,8 +78,7 @@ nao_usa_equipamento(p2).
 %Logica
 equipamento(X) :- data_show(X); computador(X).
 ligavel(X) :- data_show(X); computador(X); ar_condicionado(X); lampada(X).
-%ligado(X) :- not(desligado(X)).
-%aberta(X) :- not(fechada(X)).
+
 
 %Ligar
 can(ligar(Item, Sala), [desligado(Item), aberta(Sala)], preparar) :- 
@@ -113,21 +101,29 @@ deletes(desligar(Item, Sala), [ligado(Item)],preparar) :-
 ligavel(Item), sala(Sala).
  
 %AjustarArCondicionado
-can(ajustar(ArCondicionado, Temperatura), [not(potencia(ArCondicionado, Temperatura))], preparar) :- 
-ar_condicionado(ArCondicionado), temperatura(Temperatura).
+can(ajustar_ar_para_frio(Ar_Condicionado, Sala), [ligado(Ar_Condicionado), aberta(Sala), frio(clima), nao_ajustado(Ar_Condicionado)], preparar) :- 
+ar_condicionado(Ar_Condicionado), sala(Sala), pertence(Sala, Ar_Condicionado).
  
-adds(ajustar(ArCondicionado, Temperatura), [temperatura(ArCondicionado, Temperatura)], _, preparar):- 
-ar_condicionado(ArCondicionado), temperatura(Temperatura).
+adds(ajustar_ar_para_frio(Ar_Condicionado, Sala), [ajustado(Ar_Condicionado)], _, preparar):- 
+ar_condicionado(Ar_Condicionado), sala(Sala).
  
-deletes(ajustar(ArCondicionado, Temperatura), [not(potencia(ArCondicionado, Temperatura))],preparar) :- 
-ar_condicionado(ArCondicionado), temperatura(Temperatura).
+deletes(ajustar_ar_para_frio(Ar_Condicionado, Sala), [nao_ajustado(Ar_Condicionado)],preparar) :- 
+ar_condicionado(Ar_Condicionado), sala(Sala).
  
+can(ajustar_ar_para_calor(Ar_Condicionado, Sala), [ligado(Ar_Condicionado), aberta(Sala), quente(clima), nao_ajustado(Ar_Condicionado)], preparar) :- 
+ar_condicionado(Ar_Condicionado), sala(Sala), pertence(Sala, Ar_Condicionado).
+ 
+adds(ajustar_ar_para_calor(Ar_Condicionado, Sala), [ajustado(Ar_Condicionado)], _, preparar):- 
+ar_condicionado(Ar_Condicionado), sala(Sala).
+ 
+deletes(ajustar_ar_para_calor(Ar_Condicionado, Sala), [nao_ajustado(Ar_Condicionado)],preparar) :- 
+ar_condicionado(Ar_Condicionado), sala(Sala). 
  
  
  
 %Abrir
-can(abrir(Sala, Professor, Hora), [fechada(Sala), reserva(Sala, Professor, Hora)], preparar) :-
-sala(Sala), professor(Professor), hora(Hora).
+can(abrir(Sala, Professor, Hora), [fechada(Sala) ], preparar) :-
+sala(Sala), professor(Professor), hora(Hora), reserva(Sala, Professor, Hora).
  
 adds(abrir(Sala, Professor, Hora), [aberta(Sala)], _, preparar) :- 
  sala(Sala), professor(Professor), hora(Hora).
@@ -136,8 +132,8 @@ deletes(abrir(Sala, Professor, Hora),[fechada(Sala)], preparar) :-
 sala(Sala), professor(Professor), hora(Hora).
  
 %Fechar
-can(fechar(Sala, Professor, Hora), [aberta(Sala), reserva(Sala,Professor,Hora)], preparar) :-
-sala(Sala), professor(Professor), hora(Hora).
+can(fechar(Sala, Professor, Hora), [aberta(Sala)], preparar) :-
+sala(Sala), professor(Professor), hora(Hora), reserva(Sala, Professor, Hora).
  
 adds(fechar(Sala, Professor, Hora), [ fechada(Sala)], _, preparar) :- 
  sala(Sala), professor(Professor), hora(Hora).
@@ -145,8 +141,8 @@ adds(fechar(Sala, Professor, Hora), [ fechada(Sala)], _, preparar) :-
 deletes(fechar(Sala, Professor, Hora),[aberta(Sala)], preparar) :-  
 sala(Sala), professor(Professor), hora(Hora).
  
-%Iniciar aula
-can(preparar_aula_com_equipamento(Sala, Professor), [aberta(Sala), ligado(X), ligado(Y), ligado(Z), ligado(W), usa_equipamento(Professor)],preparar) :-
+%Preparar aula
+can(preparar_aula_com_equipamento(Sala, Professor), [aberta(Sala), ligado(X), ligado(Y), ligado(Z), ligado(W),  ajustado(W)],preparar) :-
 professor(Professor),
 sala(Sala),
 data_show(X),
@@ -158,45 +154,20 @@ pertence(Sala,Z),
 ar_condicionado(W),
 pertence(Sala, W),
 hora(H),
-reserva(Sala, Professor, H).
+reserva(Sala, Professor, H),
+usa_equipamento(Professor).
  
 adds(preparar_aula_com_equipamento(Sala, Professor), [aula_preparada(Sala,Professor)], _, preparar):-
 professor(Professor),
 sala(Sala).
-%data_show(X),
-%ligado(X),
-%pertence(Sala, X),
-%computador(Y),
-%ligado(Y),
-%pertence(Sala, Y),
-%lampada(Z),
-%ligado(Z),
-%pertence(Sala,Z),
-%ar_condicionado(W),
-%ligado(W),
-%pertence(Sala, W),
-%hora(H),
-%reserva(Sala, Professor, H).
+
 	
 deletes(preparar_aula_com_equipamento(Sala, Professor), [], preparar):-
 professor(Professor),
 sala(Sala).
-%data_show(X),
-%ligado(X),
-%pertence(Sala, X),
-%computador(Y),
-%ligado(Y),
-%pertence(Sala, Y),
-%lampada(Z),
-%ligado(Z),
-%pertence(Sala,Z),
-%ar_condicionado(W),
-%ligado(W),
-%pertence(Sala, W),
-%hora(H),
-%reserva(Sala, Professor, H).
+
  
-can(preparar_aula_sem_equipamento(Sala, Professor), [aberta(Sala),ligado(Z), ligado(W), nao_usa_equipamento(Professor)],preparar) :-
+can(preparar_aula_sem_equipamento(Sala, Professor), [aberta(Sala),ligado(Z), ligado(W), ajustado(W)],preparar) :-
 professor(Professor),
 sala(Sala),
 lampada(Z),
@@ -204,28 +175,20 @@ pertence(Sala,Z),
 ar_condicionado(W),
 pertence(Sala, W),
 hora(H),
-reserva(Sala, Professor, H).
+reserva(Sala, Professor, H),
+nao_usa_equipamento(Professor).
  
 adds(preparar_aula_sem_equipamento(Sala, Professor), [aula_preparada(Sala,Professor)], _, preparar):-
 professor(Professor),
 sala(Sala).
-%lampada(Z),
-%ligado(Z),
-%pertence(Sala,Z),
-%ar_condicionado(W),
-%ligado(W),
-%pertence(Sala, W),
-%hora(H),
-%reserva(Sala, Professor, H).
+
 
 deletes(preparar_aula_sem_equipamento(Sala, Professor), [], preparar):-
 professor(Professor),
 sala(Sala).
-%lampada(Z),
-%ligado(Z),
-%pertence(Sala,Z),
-%ar_condicionado(W),
-%ligado(W),
-%pertence(Sala, W),
-%hora(H),
-%reserva(Sala, Professor, H).
+
+
+%casos de teste
+
+test01(P) :- plan([ fechada(s1), desligado(a1), desligado(l1), desligado(c1), desligado(d1), nao_ajustado(a1), frio(clima)], [aula_preparada(s1,p1)], preparar, P).
+test02(P) :- plan([ fechada(s1), desligado(a1), desligado(l1), desligado(c1), desligado(d1), nao_ajustado(a1), quente(clima)], [aula_preparada(s1,p1)], preparar, P).
